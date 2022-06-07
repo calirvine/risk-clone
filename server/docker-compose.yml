@@ -1,0 +1,35 @@
+version: "3.8"
+services:
+  db:
+    image: postgres:14.1-alpine
+    restart: always
+    healthcheck:
+      test: ["CMD", "pg_isready", "-q", "-d", "postgres", "-U", "root"]
+      timeout: 45s
+      interval: 10s
+      retries: 10
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=supersecure
+      - APP_DB_USER=docker
+      - APP_DB_PASS=docker
+      - APP_DB_NAME=docker
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./db:/docker-entrypoint-initdb.d/
+      - db:/var/lib/postgresql/data
+  # server:
+  #   build:
+  #     context: .
+  #   ports:
+  #     - 8000:8000
+  #   environment:
+  #     - SERVER_PORT=8000
+  #     - DATABASE_CONNECTIONSTRING=postgresql://docker:docker@db:5432/risk
+  #   volumes:
+  #     - ./:/code
+  #   command: npm run debug
+volumes:
+  db:
+    driver: local

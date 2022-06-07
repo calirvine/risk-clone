@@ -1,0 +1,75 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgres"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String   @id @default(uuid())
+  email           String   @unique
+  profile         Profile?
+  password        String
+  verified        Boolean  @default(false)
+  passwordRevoked Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Profile {
+  id          String             @id @default(uuid())
+  user        User               @relation(fields: [userId], references: [id])
+  userId      String             @unique
+  fullName    String
+  displayName String
+  friends     FriendConnection[] @relation("friend")
+  friended    FriendConnection[] @relation("friendedBy")
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+}
+
+model FriendConnection {
+  id           String   @id @default(uuid())
+  friend       Profile  @relation("friend", fields: [friendId], references: [id])
+  friendId     String
+  friendedBy   Profile  @relation("friendedBy", fields: [friendedById], references: [id])
+  friendedById String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Map {
+  id         String         @id @default(uuid())
+  version    Int            @default(autoincrement())
+  name       String         @unique
+  continents MapContinent[]
+  nodes      MapNode[]
+  minPlayers Int            @default(2)
+  maxPlayers Int            @default(7)
+  published  Boolean        @default(false)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+}
+
+model MapContinent {
+  id           String    @id @default(uuid())
+  map          Map       @relation(fields: [mapId], references: [id])
+  mapId        String
+  memberNodes  MapNode[]
+  controlBonus Int
+}
+
+model MapNode {
+  id           String       @id @default(uuid())
+  map          Map          @relation(fields: [mapId], references: [id])
+  mapId        String
+  continent    MapContinent @relation(fields: [continentId], references: [id])
+  continentId  String
+  connectsTo   MapNode[]    @relation("MapNodeConnection")
+  connectsFrom MapNode[]    @relation("MapNodeConnection")
+}
